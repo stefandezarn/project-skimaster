@@ -1,0 +1,31 @@
+{
+  "ecommerce": [
+    {
+      "name": "view_item",
+      "description": "Triggered when a user views a specific item.",
+      "parameters": [
+        { "key": "currency", "type": "string", "required": true },
+        { "key": "value", "type": "number", "required": true },
+        { "key": "items", "type": "array", "required": true }
+      ]
+    },
+    {
+      "name": "add_to_cart",
+      "description": "Triggered when a user adds items to a shopping cart.",
+      "parameters": [
+        { "key": "currency", "type": "string", "required": true },
+        { "key": "value", "type": "number", "required": true }
+      ]
+    }
+  ],
+  "lead_gen": [
+    {
+      "name": "generate_lead",
+      "description": "Triggered when a user submits a lead form.",
+      "parameters": [
+        { "key": "value", "type": "number", "required": false },
+        { "key": "currency", "type": "string", "required": false }
+      ]
+    }
+  ]
+}

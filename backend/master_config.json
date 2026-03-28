@@ -1,0 +1,76 @@
+{
+  "events": [
+    {
+      "name": "login",
+      "description": "user authenticates",
+      "parameters": [
+        {
+          "key": "method",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "key": "user_id",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "name": "sign_up",
+      "description": "user authenticates",
+      "parameters": [
+        {
+          "key": "method",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "key": "user_id",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "name": "purchase",
+      "description": "user makes a purchase",
+      "parameters": [
+        {
+          "key": "transaction_id",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "key": "value",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    }
+  ],
+  "global_parameters": {
+    "method": {
+      "description": "Auto-registered",
+      "type": "string"
+    },
+    "user_id": {
+      "description": "Auto-registered",
+      "type": "string"
+    },
+    "transaction_id": {
+      "description": "Auto-registered",
+      "type": "string"
+    },
+    "value": {
+      "description": "Auto-registered",
+      "type": "string"
+    }
+  }
+}
