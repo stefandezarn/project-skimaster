@@ -1,8 +1,111 @@
 {
+  "engagement_and_enhanced_measurement": [
+    {
+      "name": "page_view",
+      "description": "Triggered when a page loads or the browser history state changes.",
+      "parameters": [
+        { "key": "page_location", "type": "string", "required": true },
+        { "key": "page_referrer", "type": "string", "required": false },
+        { "key": "page_title", "type": "string", "required": false }
+      ]
+    },
+    {
+      "name": "scroll",
+      "description": "Triggered the first time a user reaches the bottom (90% depth) of each page.",
+      "parameters": [
+        { "key": "percent_scrolled", "type": "number", "required": true }
+      ]
+    },
+    {
+      "name": "click",
+      "description": "Triggered when a user clicks a link that leads away from the current domain.",
+      "parameters": [
+        { "key": "link_classes", "type": "string", "required": false },
+        { "key": "link_domain", "type": "string", "required": false },
+        { "key": "link_id", "type": "string", "required": false },
+        { "key": "link_url", "type": "string", "required": true },
+        { "key": "outbound", "type": "boolean", "required": true }
+      ]
+    },
+    {
+      "name": "view_search_results",
+      "description": "Triggered when a user performs a site search.",
+      "parameters": [
+        { "key": "search_term", "type": "string", "required": true },
+        { "key": "q_<additional_param>", "type": "string", "required": false }
+      ]
+    },
+    {
+      "name": "file_download",
+      "description": "Triggered when a user clicks a link for a common document/compressed file.",
+      "parameters": [
+        { "key": "file_extension", "type": "string", "required": true },
+        { "key": "file_name", "type": "string", "required": true },
+        { "key": "link_text", "type": "string", "required": false },
+        { "key": "link_url", "type": "string", "required": true }
+      ]
+    },
+    {
+      "name": "video_start",
+      "description": "Triggered when an embedded YouTube video starts playing.",
+      "parameters": [
+        { "key": "video_current_time", "type": "number", "required": false },
+        { "key": "video_duration", "type": "number", "required": false },
+        { "key": "video_percent", "type": "number", "required": false },
+        { "key": "video_provider", "type": "string", "required": true },
+        { "key": "video_title", "type": "string", "required": true },
+        { "key": "video_url", "type": "string", "required": true },
+        { "key": "visible", "type": "boolean", "required": false }
+      ]
+    }
+  ],
+  "account_and_system": [
+    {
+      "name": "login",
+      "description": "Triggered when a user logs in.",
+      "parameters": [
+        { "key": "method", "type": "string", "required": false }
+      ]
+    },
+    {
+      "name": "sign_up",
+      "description": "Triggered when a user registers for an account.",
+      "parameters": [
+        { "key": "method", "type": "string", "required": false }
+      ]
+    },
+    {
+      "name": "share",
+      "description": "Triggered when a user shares content.",
+      "parameters": [
+        { "key": "method", "type": "string", "required": false },
+        { "key": "content_type", "type": "string", "required": false },
+        { "key": "item_id", "type": "string", "required": false }
+      ]
+    }
+  ],
   "ecommerce": [
     {
+      "name": "view_item_list",
+      "description": "Triggered when a user views a list of products.",
+      "parameters": [
+        { "key": "item_list_id", "type": "string", "required": false },
+        { "key": "item_list_name", "type": "string", "required": false },
+        { "key": "items", "type": "array", "required": true }
+      ]
+    },
+    {
+      "name": "select_item",
+      "description": "Triggered when a user selects an item from a list.",
+      "parameters": [
+        { "key": "item_list_id", "type": "string", "required": false },
+        { "key": "item_list_name", "type": "string", "required": false },
+        { "key": "items", "type": "array", "required": true }
+      ]
+    },
+    {
       "name": "view_item",
-      "description": "Triggered when a user views a specific item.",
+      "description": "Triggered when a user views a product detail page.",
       "parameters": [
         { "key": "currency", "type": "string", "required": true },
         { "key": "value", "type": "number", "required": true },
@@ -11,17 +114,47 @@
     },
     {
       "name": "add_to_cart",
-      "description": "Triggered when a user adds items to a shopping cart.",
+      "description": "Triggered when a user adds an item to their cart.",
       "parameters": [
         { "key": "currency", "type": "string", "required": true },
-        { "key": "value", "type": "number", "required": true }
+        { "key": "value", "type": "number", "required": true },
+        { "key": "items", "type": "array", "required": true }
+      ]
+    },
+    {
+      "name": "begin_checkout",
+      "description": "Triggered when a user begins the checkout process.",
+      "parameters": [
+        { "key": "currency", "type": "string", "required": true },
+        { "key": "value", "type": "number", "required": true },
+        { "key": "items", "type": "array", "required": true }
+      ]
+    },
+    {
+      "name": "purchase",
+      "description": "Triggered when a user completes a purchase.",
+      "parameters": [
+        { "key": "transaction_id", "type": "string", "required": true },
+        { "key": "value", "type": "number", "required": true },
+        { "key": "currency", "type": "string", "required": true },
+        { "key": "tax", "type": "number", "required": false },
+        { "key": "shipping", "type": "number", "required": false },
+        { "key": "items", "type": "array", "required": true }
       ]
     }
   ],
   "lead_gen": [
     {
       "name": "generate_lead",
-      "description": "Triggered when a user submits a lead form.",
+      "description": "Triggered when a lead form is submitted.",
+      "parameters": [
+        { "key": "value", "type": "number", "required": false },
+        { "key": "currency", "type": "string", "required": false }
+      ]
+    },
+    {
+      "name": "qualify_lead",
+      "description": "Triggered when a lead is qualified (offline/CRM event).",
       "parameters": [
         { "key": "value", "type": "number", "required": false },
         { "key": "currency", "type": "string", "required": false }
