@@ -9,6 +9,8 @@ services:
       - ./backend:/app
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/analytics_db
+      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - WORKSPACE_DATA_DIR=/app/data/workspaces
     depends_on:
       - db
 
@@ -18,6 +20,8 @@ services:
       - "3000:3000"
     volumes:
       - ./frontend:/app
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
 
   db:
     image: postgres:15

@@ -6,11 +6,13 @@ frontend/.env.local
 frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
+frontend/.env
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
 
 # Backend Python
+backend/data/
 backend/__pycache__/
 backend/.venv/
 backend/venv/
