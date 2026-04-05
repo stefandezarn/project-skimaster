@@ -4,58 +4,101 @@
       "name": "page_view",
       "description": "Triggered when a page loads or the browser history state changes.",
       "parameters": [
-        { "key": "page_location", "type": "string", "required": true },
-        { "key": "page_referrer", "type": "string", "required": false },
-        { "key": "page_title", "type": "string", "required": false }
+        { "key": "page_location", "type": "string", "required": true, "description": "Full URL of the page." },
+        { "key": "page_referrer", "type": "string", "required": false, "description": "URL of the referring page." },
+        { "key": "page_title", "type": "string", "required": false, "description": "Title of the page." }
       ]
     },
     {
       "name": "scroll",
       "description": "Triggered the first time a user reaches the bottom (90% depth) of each page.",
       "parameters": [
-        { "key": "percent_scrolled", "type": "number", "required": true }
+        { "key": "percent_scrolled", "type": "number", "required": true, "description": "Percentage of page scrolled (always 90)." }
       ]
     },
     {
       "name": "click",
       "description": "Triggered when a user clicks a link that leads away from the current domain.",
       "parameters": [
-        { "key": "link_classes", "type": "string", "required": false },
-        { "key": "link_domain", "type": "string", "required": false },
-        { "key": "link_id", "type": "string", "required": false },
-        { "key": "link_url", "type": "string", "required": true },
-        { "key": "outbound", "type": "boolean", "required": true }
+        { "key": "link_classes", "type": "string", "required": false, "description": "CSS classes on the clicked link." },
+        { "key": "link_domain", "type": "string", "required": false, "description": "Domain of the link destination." },
+        { "key": "link_id", "type": "string", "required": false, "description": "HTML id attribute of the link." },
+        { "key": "link_url", "type": "string", "required": true, "description": "Full URL of the link destination." },
+        { "key": "outbound", "type": "boolean", "required": true, "description": "True if the link leads off-domain." }
       ]
     },
     {
       "name": "view_search_results",
-      "description": "Triggered when a user performs a site search.",
+      "description": "Triggered when a user views search results on your site.",
       "parameters": [
-        { "key": "search_term", "type": "string", "required": true },
-        { "key": "q_<additional_param>", "type": "string", "required": false }
+        { "key": "search_term", "type": "string", "required": true, "description": "The term the user searched for." }
       ]
     },
     {
       "name": "file_download",
-      "description": "Triggered when a user clicks a link for a common document/compressed file.",
+      "description": "Triggered when a user clicks a link to a common document or compressed file.",
       "parameters": [
-        { "key": "file_extension", "type": "string", "required": true },
-        { "key": "file_name", "type": "string", "required": true },
-        { "key": "link_text", "type": "string", "required": false },
-        { "key": "link_url", "type": "string", "required": true }
+        { "key": "file_extension", "type": "string", "required": true, "description": "Extension of the downloaded file (e.g. pdf)." },
+        { "key": "file_name", "type": "string", "required": true, "description": "Name of the downloaded file." },
+        { "key": "link_text", "type": "string", "required": false, "description": "Visible link text." },
+        { "key": "link_url", "type": "string", "required": true, "description": "URL of the file." }
       ]
     },
     {
       "name": "video_start",
       "description": "Triggered when an embedded YouTube video starts playing.",
       "parameters": [
-        { "key": "video_current_time", "type": "number", "required": false },
-        { "key": "video_duration", "type": "number", "required": false },
-        { "key": "video_percent", "type": "number", "required": false },
-        { "key": "video_provider", "type": "string", "required": true },
-        { "key": "video_title", "type": "string", "required": true },
-        { "key": "video_url", "type": "string", "required": true },
-        { "key": "visible", "type": "boolean", "required": false }
+        { "key": "video_current_time", "type": "number", "required": false, "description": "Current playback position in seconds." },
+        { "key": "video_duration", "type": "number", "required": false, "description": "Total video duration in seconds." },
+        { "key": "video_percent", "type": "number", "required": false, "description": "Percentage of video watched." },
+        { "key": "video_provider", "type": "string", "required": true, "description": "Video host (e.g. YouTube)." },
+        { "key": "video_title", "type": "string", "required": true, "description": "Title of the video." },
+        { "key": "video_url", "type": "string", "required": true, "description": "URL of the video." },
+        { "key": "visible", "type": "boolean", "required": false, "description": "True if the video player is visible in the viewport." }
+      ]
+    },
+    {
+      "name": "video_progress",
+      "description": "Triggered when a user watches 10%, 25%, 50%, or 75% of a video.",
+      "parameters": [
+        { "key": "video_current_time", "type": "number", "required": false, "description": "Current playback position in seconds." },
+        { "key": "video_duration", "type": "number", "required": false, "description": "Total video duration in seconds." },
+        { "key": "video_percent", "type": "number", "required": true, "description": "Milestone percentage reached (10, 25, 50, 75)." },
+        { "key": "video_provider", "type": "string", "required": true, "description": "Video host (e.g. YouTube)." },
+        { "key": "video_title", "type": "string", "required": true, "description": "Title of the video." },
+        { "key": "video_url", "type": "string", "required": true, "description": "URL of the video." },
+        { "key": "visible", "type": "boolean", "required": false, "description": "True if the video player is visible in the viewport." }
+      ]
+    },
+    {
+      "name": "video_complete",
+      "description": "Triggered when a user finishes watching a video.",
+      "parameters": [
+        { "key": "video_current_time", "type": "number", "required": false, "description": "Current playback position in seconds." },
+        { "key": "video_duration", "type": "number", "required": false, "description": "Total video duration in seconds." },
+        { "key": "video_percent", "type": "number", "required": false, "description": "Percentage of video watched (always 100)." },
+        { "key": "video_provider", "type": "string", "required": true, "description": "Video host (e.g. YouTube)." },
+        { "key": "video_title", "type": "string", "required": true, "description": "Title of the video." },
+        { "key": "video_url", "type": "string", "required": true, "description": "URL of the video." },
+        { "key": "visible", "type": "boolean", "required": false, "description": "True if the video player is visible in the viewport." }
+      ]
+    },
+    {
+      "name": "form_start",
+      "description": "Triggered the first time a user interacts with a form in a session.",
+      "parameters": [
+        { "key": "form_id", "type": "string", "required": false, "description": "HTML id of the form element." },
+        { "key": "form_name", "type": "string", "required": false, "description": "HTML name attribute of the form." },
+        { "key": "form_destination", "type": "string", "required": false, "description": "URL the form submits to." }
+      ]
+    },
+    {
+      "name": "form_submit",
+      "description": "Triggered when a user submits a form.",
+      "parameters": [
+        { "key": "form_id", "type": "string", "required": false, "description": "HTML id of the form element." },
+        { "key": "form_name", "type": "string", "required": false, "description": "HTML name attribute of the form." },
+        { "key": "form_destination", "type": "string", "required": false, "description": "URL the form submits to." }
       ]
     }
   ],
@@ -64,82 +107,180 @@
       "name": "login",
       "description": "Triggered when a user logs in.",
       "parameters": [
-        { "key": "method", "type": "string", "required": false }
+        { "key": "method", "type": "string", "required": false, "description": "Login method (e.g. Google, email)." }
       ]
     },
     {
       "name": "sign_up",
       "description": "Triggered when a user registers for an account.",
       "parameters": [
-        { "key": "method", "type": "string", "required": false }
+        { "key": "method", "type": "string", "required": false, "description": "Registration method (e.g. Google, email)." }
       ]
     },
     {
       "name": "share",
       "description": "Triggered when a user shares content.",
       "parameters": [
-        { "key": "method", "type": "string", "required": false },
-        { "key": "content_type", "type": "string", "required": false },
-        { "key": "item_id", "type": "string", "required": false }
+        { "key": "method", "type": "string", "required": false, "description": "Share method (e.g. Twitter, email)." },
+        { "key": "content_type", "type": "string", "required": false, "description": "Type of content shared." },
+        { "key": "item_id", "type": "string", "required": false, "description": "ID of the shared content item." }
+      ]
+    },
+    {
+      "name": "search",
+      "description": "Triggered when a user searches your site or app.",
+      "parameters": [
+        { "key": "search_term", "type": "string", "required": true, "description": "The term the user searched for." }
+      ]
+    },
+    {
+      "name": "select_content",
+      "description": "Triggered when a user selects content (e.g. a tab, accordion item, or card).",
+      "parameters": [
+        { "key": "content_type", "type": "string", "required": false, "description": "Type of content selected." },
+        { "key": "item_id", "type": "string", "required": false, "description": "ID of the selected content." }
+      ]
+    },
+    {
+      "name": "join_group",
+      "description": "Triggered when a user joins a group (e.g. team, guild, or community).",
+      "parameters": [
+        { "key": "group_id", "type": "string", "required": false, "description": "Identifier for the group joined." }
       ]
     }
   ],
   "ecommerce": [
     {
       "name": "view_item_list",
-      "description": "Triggered when a user views a list of products.",
+      "description": "Triggered when a user views a list of products or offerings.",
       "parameters": [
-        { "key": "item_list_id", "type": "string", "required": false },
-        { "key": "item_list_name", "type": "string", "required": false },
-        { "key": "items", "type": "array", "required": true }
+        { "key": "item_list_id", "type": "string", "required": false, "description": "Identifier for the list (e.g. related_products)." },
+        { "key": "item_list_name", "type": "string", "required": false, "description": "Display name of the list." },
+        { "key": "items", "type": "array", "required": true, "description": "Array of item objects. See item parameters reference." }
       ]
     },
     {
       "name": "select_item",
       "description": "Triggered when a user selects an item from a list.",
       "parameters": [
-        { "key": "item_list_id", "type": "string", "required": false },
-        { "key": "item_list_name", "type": "string", "required": false },
-        { "key": "items", "type": "array", "required": true }
+        { "key": "item_list_id", "type": "string", "required": false, "description": "Identifier for the list the item was selected from." },
+        { "key": "item_list_name", "type": "string", "required": false, "description": "Display name of the list." },
+        { "key": "items", "type": "array", "required": true, "description": "Array containing the selected item object." }
       ]
     },
     {
       "name": "view_item",
       "description": "Triggered when a user views a product detail page.",
       "parameters": [
-        { "key": "currency", "type": "string", "required": true },
-        { "key": "value", "type": "number", "required": true },
-        { "key": "items", "type": "array", "required": true }
+        { "key": "currency", "type": "string", "required": true, "description": "ISO 4217 currency code (e.g. USD)." },
+        { "key": "value", "type": "number", "required": true, "description": "Monetary value of the item viewed." },
+        { "key": "items", "type": "array", "required": true, "description": "Array containing the viewed item object." }
       ]
     },
     {
       "name": "add_to_cart",
-      "description": "Triggered when a user adds an item to their cart.",
+      "description": "Triggered when a user adds an item to their shopping cart.",
       "parameters": [
-        { "key": "currency", "type": "string", "required": true },
-        { "key": "value", "type": "number", "required": true },
-        { "key": "items", "type": "array", "required": true }
+        { "key": "currency", "type": "string", "required": true, "description": "ISO 4217 currency code." },
+        { "key": "value", "type": "number", "required": true, "description": "Monetary value of items added." },
+        { "key": "items", "type": "array", "required": true, "description": "Array of item objects added to cart." }
+      ]
+    },
+    {
+      "name": "remove_from_cart",
+      "description": "Triggered when a user removes an item from their shopping cart.",
+      "parameters": [
+        { "key": "currency", "type": "string", "required": true, "description": "ISO 4217 currency code." },
+        { "key": "value", "type": "number", "required": true, "description": "Monetary value of items removed." },
+        { "key": "items", "type": "array", "required": true, "description": "Array of item objects removed from cart." }
+      ]
+    },
+    {
+      "name": "add_to_wishlist",
+      "description": "Triggered when a user adds an item to a wishlist.",
+      "parameters": [
+        { "key": "currency", "type": "string", "required": false, "description": "ISO 4217 currency code." },
+        { "key": "value", "type": "number", "required": false, "description": "Monetary value of items added to wishlist." },
+        { "key": "items", "type": "array", "required": true, "description": "Array of item objects added to wishlist." }
+      ]
+    },
+    {
+      "name": "view_promotion",
+      "description": "Triggered when a promotion is shown to a user.",
+      "parameters": [
+        { "key": "creative_name", "type": "string", "required": false, "description": "Name of the creative asset." },
+        { "key": "creative_slot", "type": "string", "required": false, "description": "Slot where the creative was shown." },
+        { "key": "promotion_id", "type": "string", "required": false, "description": "Identifier for the promotion." },
+        { "key": "promotion_name", "type": "string", "required": false, "description": "Display name of the promotion." },
+        { "key": "items", "type": "array", "required": false, "description": "Items associated with the promotion." }
+      ]
+    },
+    {
+      "name": "select_promotion",
+      "description": "Triggered when a user clicks on a promotion.",
+      "parameters": [
+        { "key": "creative_name", "type": "string", "required": false, "description": "Name of the creative asset." },
+        { "key": "creative_slot", "type": "string", "required": false, "description": "Slot where the creative was shown." },
+        { "key": "promotion_id", "type": "string", "required": false, "description": "Identifier for the promotion." },
+        { "key": "promotion_name", "type": "string", "required": false, "description": "Display name of the promotion." },
+        { "key": "items", "type": "array", "required": false, "description": "Items associated with the promotion." }
       ]
     },
     {
       "name": "begin_checkout",
       "description": "Triggered when a user begins the checkout process.",
       "parameters": [
-        { "key": "currency", "type": "string", "required": true },
-        { "key": "value", "type": "number", "required": true },
-        { "key": "items", "type": "array", "required": true }
+        { "key": "currency", "type": "string", "required": true, "description": "ISO 4217 currency code." },
+        { "key": "value", "type": "number", "required": true, "description": "Total monetary value of items in checkout." },
+        { "key": "coupon", "type": "string", "required": false, "description": "Coupon code applied." },
+        { "key": "items", "type": "array", "required": true, "description": "Array of item objects in the cart." }
+      ]
+    },
+    {
+      "name": "add_shipping_info",
+      "description": "Triggered when a user submits their shipping information during checkout.",
+      "parameters": [
+        { "key": "currency", "type": "string", "required": true, "description": "ISO 4217 currency code." },
+        { "key": "value", "type": "number", "required": true, "description": "Total monetary value of the order." },
+        { "key": "coupon", "type": "string", "required": false, "description": "Coupon code applied." },
+        { "key": "shipping_tier", "type": "string", "required": false, "description": "Selected shipping tier (e.g. Ground, Air)." },
+        { "key": "items", "type": "array", "required": true, "description": "Array of item objects in the order." }
+      ]
+    },
+    {
+      "name": "add_payment_info",
+      "description": "Triggered when a user submits their payment information during checkout.",
+      "parameters": [
+        { "key": "currency", "type": "string", "required": true, "description": "ISO 4217 currency code." },
+        { "key": "value", "type": "number", "required": true, "description": "Total monetary value of the order." },
+        { "key": "coupon", "type": "string", "required": false, "description": "Coupon code applied." },
+        { "key": "payment_type", "type": "string", "required": false, "description": "Selected payment method (e.g. Credit Card, PayPal)." },
+        { "key": "items", "type": "array", "required": true, "description": "Array of item objects in the order." }
       ]
     },
     {
       "name": "purchase",
       "description": "Triggered when a user completes a purchase.",
       "parameters": [
-        { "key": "transaction_id", "type": "string", "required": true },
-        { "key": "value", "type": "number", "required": true },
-        { "key": "currency", "type": "string", "required": true },
-        { "key": "tax", "type": "number", "required": false },
-        { "key": "shipping", "type": "number", "required": false },
-        { "key": "items", "type": "array", "required": true }
+        { "key": "transaction_id", "type": "string", "required": true, "description": "Unique identifier for the transaction." },
+        { "key": "value", "type": "number", "required": true, "description": "Total revenue (not including tax and shipping)." },
+        { "key": "currency", "type": "string", "required": true, "description": "ISO 4217 currency code." },
+        { "key": "tax", "type": "number", "required": false, "description": "Tax amount." },
+        { "key": "shipping", "type": "number", "required": false, "description": "Shipping cost." },
+        { "key": "coupon", "type": "string", "required": false, "description": "Coupon code applied to the purchase." },
+        { "key": "items", "type": "array", "required": true, "description": "Array of purchased item objects." }
+      ]
+    },
+    {
+      "name": "refund",
+      "description": "Triggered when a refund is issued.",
+      "parameters": [
+        { "key": "transaction_id", "type": "string", "required": true, "description": "Identifier of the original transaction." },
+        { "key": "value", "type": "number", "required": false, "description": "Refund amount." },
+        { "key": "currency", "type": "string", "required": false, "description": "ISO 4217 currency code." },
+        { "key": "tax", "type": "number", "required": false, "description": "Refunded tax amount." },
+        { "key": "shipping", "type": "number", "required": false, "description": "Refunded shipping cost." },
+        { "key": "items", "type": "array", "required": false, "description": "Array of refunded item objects (partial refund)." }
       ]
     }
   ],
@@ -148,16 +289,110 @@
       "name": "generate_lead",
       "description": "Triggered when a lead form is submitted.",
       "parameters": [
-        { "key": "value", "type": "number", "required": false },
-        { "key": "currency", "type": "string", "required": false }
+        { "key": "value", "type": "number", "required": false, "description": "Expected value of the lead." },
+        { "key": "currency", "type": "string", "required": false, "description": "ISO 4217 currency code." }
       ]
     },
     {
       "name": "qualify_lead",
-      "description": "Triggered when a lead is qualified (offline/CRM event).",
+      "description": "Triggered when a lead is qualified (typically an offline or CRM event).",
       "parameters": [
-        { "key": "value", "type": "number", "required": false },
-        { "key": "currency", "type": "string", "required": false }
+        { "key": "value", "type": "number", "required": false, "description": "Value assigned to the qualified lead." },
+        { "key": "currency", "type": "string", "required": false, "description": "ISO 4217 currency code." }
+      ]
+    }
+  ],
+  "gaming": [
+    {
+      "name": "tutorial_begin",
+      "description": "Triggered when a user begins a tutorial.",
+      "parameters": []
+    },
+    {
+      "name": "tutorial_complete",
+      "description": "Triggered when a user completes a tutorial.",
+      "parameters": []
+    },
+    {
+      "name": "level_start",
+      "description": "Triggered when a user starts a level.",
+      "parameters": [
+        { "key": "level_name", "type": "string", "required": false, "description": "Name or identifier for the level." }
+      ]
+    },
+    {
+      "name": "level_end",
+      "description": "Triggered when a user finishes a level.",
+      "parameters": [
+        { "key": "level_name", "type": "string", "required": false, "description": "Name or identifier for the level." },
+        { "key": "success", "type": "boolean", "required": false, "description": "True if the user completed the level successfully." }
+      ]
+    },
+    {
+      "name": "level_up",
+      "description": "Triggered when a user levels up.",
+      "parameters": [
+        { "key": "level", "type": "number", "required": false, "description": "New level reached." },
+        { "key": "character", "type": "string", "required": false, "description": "Character or avatar associated with the level up." }
+      ]
+    },
+    {
+      "name": "post_score",
+      "description": "Triggered when a user posts a score.",
+      "parameters": [
+        { "key": "score", "type": "number", "required": true, "description": "Score posted." },
+        { "key": "level", "type": "number", "required": false, "description": "Level the score was achieved at." },
+        { "key": "character", "type": "string", "required": false, "description": "Character used." }
+      ]
+    },
+    {
+      "name": "unlock_achievement",
+      "description": "Triggered when a user earns an achievement.",
+      "parameters": [
+        { "key": "achievement_id", "type": "string", "required": true, "description": "Identifier for the achievement unlocked." }
+      ]
+    },
+    {
+      "name": "earn_virtual_currency",
+      "description": "Triggered when a user earns virtual currency.",
+      "parameters": [
+        { "key": "virtual_currency_name", "type": "string", "required": false, "description": "Name of the virtual currency (e.g. Gems, Coins)." },
+        { "key": "value", "type": "number", "required": false, "description": "Amount of virtual currency earned." }
+      ]
+    },
+    {
+      "name": "spend_virtual_currency",
+      "description": "Triggered when a user spends virtual currency.",
+      "parameters": [
+        { "key": "virtual_currency_name", "type": "string", "required": false, "description": "Name of the virtual currency." },
+        { "key": "value", "type": "number", "required": false, "description": "Amount of virtual currency spent." },
+        { "key": "item_name", "type": "string", "required": false, "description": "Name of the item purchased with virtual currency." }
+      ]
+    }
+  ],
+  "item_parameters_reference": [
+    {
+      "name": "_item_parameters",
+      "description": "Standard parameters for objects inside the ecommerce.items[] array. Use these as a reference when documenting item-scoped parameters in ecommerce events.",
+      "parameters": [
+        { "key": "item_id", "type": "string", "required": true, "description": "Unique identifier for the item (e.g. SKU)." },
+        { "key": "item_name", "type": "string", "required": true, "description": "Display name of the item." },
+        { "key": "affiliation", "type": "string", "required": false, "description": "Store or affiliate associated with the item." },
+        { "key": "coupon", "type": "string", "required": false, "description": "Coupon code applied to the item." },
+        { "key": "discount", "type": "number", "required": false, "description": "Monetary discount applied to the item." },
+        { "key": "index", "type": "number", "required": false, "description": "Position of the item in a list." },
+        { "key": "item_brand", "type": "string", "required": false, "description": "Brand of the item." },
+        { "key": "item_category", "type": "string", "required": false, "description": "Primary category (e.g. Apparel)." },
+        { "key": "item_category2", "type": "string", "required": false, "description": "Secondary category." },
+        { "key": "item_category3", "type": "string", "required": false, "description": "Tertiary category." },
+        { "key": "item_category4", "type": "string", "required": false, "description": "Fourth-level category." },
+        { "key": "item_category5", "type": "string", "required": false, "description": "Fifth-level category." },
+        { "key": "item_list_id", "type": "string", "required": false, "description": "List the item was presented in." },
+        { "key": "item_list_name", "type": "string", "required": false, "description": "Display name of the list." },
+        { "key": "item_variant", "type": "string", "required": false, "description": "Variant of the item (e.g. color, size)." },
+        { "key": "location_id", "type": "string", "required": false, "description": "Physical location associated with the item." },
+        { "key": "price", "type": "number", "required": false, "description": "Unit price of the item." },
+        { "key": "quantity", "type": "number", "required": false, "description": "Quantity of the item." }
       ]
     }
   ]

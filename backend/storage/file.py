@@ -101,6 +101,39 @@ class FileWorkspaceStorage(WorkspaceStorage):
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
+    def delete_workspace(self, workspace_id: str) -> None:
+        path = self._path(workspace_id)
+        if path.is_file():
+            path.unlink()
+
+    def rename_workspace(self, workspace_id: str, name: str) -> Dict[str, Any]:
+        doc = self.get_workspace(workspace_id)
+        if doc is None:
+            raise FileNotFoundError(workspace_id)
+        doc.setdefault("meta", {})["name"] = name.strip() or "Untitled workspace"
+        touch_meta(doc)
+        self.save_workspace(workspace_id, doc)
+        return doc
+
+    def duplicate_workspace(self, workspace_id: str, name: Optional[str] = None) -> Dict[str, Any]:
+        source = self.get_workspace(workspace_id)
+        if source is None:
+            raise FileNotFoundError(workspace_id)
+        new_id = str(uuid.uuid4())
+        now = _utc_now()
+        new_doc = {
+            **source,
+            "meta": {
+                **source.get("meta", {}),
+                "id": new_id,
+                "name": (name or f"{source['meta'].get('name', 'Workspace')} (copy)").strip(),
+                "created_at": now,
+                "updated_at": now,
+            },
+        }
+        self.save_workspace(new_id, new_doc)
+        return new_doc
+
     def list_workspaces(self) -> List[Dict[str, Any]]:
         rows: List[Dict[str, Any]] = []
         for path in sorted(self.base_dir.glob("*.json")):

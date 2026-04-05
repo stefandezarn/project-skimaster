@@ -18,3 +18,15 @@ class WorkspaceStorage(ABC):
     @abstractmethod
     def list_workspaces(self) -> List[Dict[str, Any]]:
         """Return summary rows: id, name, created_at, etc."""
+
+    @abstractmethod
+    def delete_workspace(self, workspace_id: str) -> None:
+        """Permanently delete a workspace."""
+
+    @abstractmethod
+    def rename_workspace(self, workspace_id: str, name: str) -> Dict[str, Any]:
+        """Rename a workspace. Returns updated document."""
+
+    @abstractmethod
+    def duplicate_workspace(self, workspace_id: str, name: Optional[str] = None) -> Dict[str, Any]:
+        """Duplicate a workspace under a new id. Returns new document."""

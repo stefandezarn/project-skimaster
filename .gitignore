@@ -13,6 +13,7 @@ frontend/yarn-error.log*
 
 # Backend Python
 backend/data/
+backend/wiki_output/
 backend/__pycache__/
 backend/.venv/
 backend/venv/
