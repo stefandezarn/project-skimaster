@@ -1,4 +1,3 @@
-import React from 'react';
 
 export default function ParameterDetail({
   selectedParamKey, setSelectedParamKey,
@@ -50,6 +49,7 @@ export default function ParameterDetail({
               className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="event">Event — top-level dataLayer param</option>
+              <option value="ecommerce">Ecommerce — inside ecommerce object</option>
               <option value="item">Item — inside ecommerce.items[ ]</option>
               <option value="user">User — user-level / user property</option>
             </select>

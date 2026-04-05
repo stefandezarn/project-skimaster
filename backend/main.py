@@ -46,6 +46,80 @@ def load_workspace_doc(workspace_id: str) -> dict:
     return normalize_workspace_document(doc)
 
 
+def _placeholder(key: str, param_type: str) -> str:
+    wrapped = "{{" + key + "}}"
+    if param_type in ("number", "boolean"):
+        return wrapped
+    return "'" + wrapped + "'"
+
+
+def _datalayer_snippet(event: dict, global_parameters: dict) -> str:
+    params = event.get("parameters", [])
+    event_params, ecommerce_params, item_params, config_params, user_props = [], [], [], [], []
+
+    for p in params:
+        g = global_parameters.get(p["key"], {})
+        scope = g.get("scope", "event")
+        send_to = g.get("send_to", "event_param")
+        ptype = p.get("type") or g.get("type", "string")
+        req_comment = "  // required" if p.get("required") else "  // optional"
+
+        if send_to == "config_param":
+            config_params.append(p["key"])
+        elif send_to == "user_property":
+            user_props.append(p["key"])
+        elif scope == "item":
+            item_params.append(f"      {p['key']}: {_placeholder(p['key'], ptype)},{req_comment}")
+        elif scope == "ecommerce":
+            ecommerce_params.append(f"    {p['key']}: {_placeholder(p['key'], ptype)},{req_comment}")
+        else:
+            event_params.append(f"  {p['key']}: {_placeholder(p['key'], ptype)},{req_comment}")
+
+    has_ecommerce_obj = bool(ecommerce_params or item_params)
+    lines = []
+
+    if has_ecommerce_obj:
+        lines.append("// Clear the previous ecommerce object")
+        lines.append("dataLayer.push({ ecommerce: null });\n")
+
+    lines.append("dataLayer.push({")
+    lines.append(f"  event: '{event['name']}',")
+    for line in event_params:
+        lines.append(line)
+
+    if has_ecommerce_obj:
+        lines.append("  ecommerce: {")
+        for line in ecommerce_params:
+            lines.append(line)
+        if item_params:
+            lines.append("    items: [{")
+            for line in item_params:
+                lines.append(line)
+            lines.append("    }],")
+        lines.append("  },")
+
+    lines.append("});")
+
+    snippet = "\n".join(lines)
+
+    notes = []
+    if config_params:
+        notes.append(
+            f"> **GTM config tag params** (set once in the GA4 Configuration tag, not in the push): "
+            + ", ".join(f"`{k}`" for k in config_params)
+        )
+    if user_props:
+        notes.append(
+            f"> **User properties** (sent separately via GTM user property variable): "
+            + ", ".join(f"`{k}`" for k in user_props)
+        )
+
+    result = f"## dataLayer implementation\n\n```javascript\n{snippet}\n```"
+    if notes:
+        result += "\n\n" + "\n\n".join(notes)
+    return result
+
+
 def compile_wiki(workspace_id: str, config: dict) -> None:
     wid = require_workspace_id(workspace_id)
     root = os.path.join(WIKI_DIR, wid)
@@ -53,7 +127,9 @@ def compile_wiki(workspace_id: str, config: dict) -> None:
         os.makedirs(root, exist_ok=True)
 
     for event in config["events"]:
-        md = f"# Event: {event['name']}\n\n{event.get('description', '')}\n\n"
+        category = event.get("category", "")
+        category_line = f"**Category:** {category}\n\n" if category else ""
+        md = f"# Event: {event['name']}\n\n{category_line}{event.get('description', '')}\n\n"
         md += "| Key | Type | Req | Scope | Send To | Description |\n|:---|:---|:---|:---|:---|:---|\n"
 
         for p in event["parameters"]:
@@ -62,8 +138,10 @@ def compile_wiki(workspace_id: str, config: dict) -> None:
             req = "✅" if p["required"] else "❌"
             scope = global_def.get("scope", "event")
             send_to = global_def.get("send_to", "event_param")
-            scope_label = {"event": "event", "item": "items[ ]", "user": "user"}.get(scope, scope)
+            scope_label = {"event": "event", "ecommerce": "ecommerce obj", "item": "ecommerce.items[ ]", "user": "user"}.get(scope, scope)
             md += f"| `{p['key']}` | {p['type']} | {req} | {scope_label} | {send_to} | {desc} |\n"
+
+        md += "\n" + _datalayer_snippet(event, config["global_parameters"]) + "\n"
 
         safe_name = event["name"].replace("/", "_")
         with open(os.path.join(root, f"{safe_name}.md"), "w", encoding="utf-8") as f:
@@ -74,7 +152,7 @@ def compile_wiki(workspace_id: str, config: dict) -> None:
     for key, data in config["global_parameters"].items():
         scope = data.get("scope", "event")
         send_to = data.get("send_to", "event_param")
-        scope_label = {"event": "event", "item": "items[ ]", "user": "user"}.get(scope, scope)
+        scope_label = {"event": "event", "ecommerce": "ecommerce obj", "item": "ecommerce.items[ ]", "user": "user"}.get(scope, scope)
         dict_md += f"| `{key}` | {data.get('type', 'string')} | {scope_label} | {send_to} | {data.get('description', '')} |\n"
 
     with open(os.path.join(root, "_master_dictionary.md"), "w", encoding="utf-8") as f:
@@ -117,6 +195,7 @@ class Parameter(BaseModel):
 class EventSchema(BaseModel):
     name: str
     description: str = ""
+    category: str = ""
     parameters: List[Parameter]
 
 
@@ -286,6 +365,11 @@ async def save_workspace_event(workspace_id: str, event: EventSchema):
 @app.get("/workspaces/{workspace_id}/wiki/pages")
 async def list_wiki_pages(workspace_id: str):
     root = ensure_wiki_on_disk(workspace_id)
+    doc = load_workspace_doc(workspace_id)
+    event_categories = {
+        e["name"].replace("/", "_"): e.get("category", "")
+        for e in doc.get("events", [])
+    }
     files = [
         n
         for n in os.listdir(root)
@@ -293,7 +377,14 @@ async def list_wiki_pages(workspace_id: str):
     ]
     files.sort(key=lambda n: (0 if n.startswith("_") else 1, n.lower()))
     return {
-        "pages": [{"file": name, "label": wiki_page_label(name)} for name in files],
+        "pages": [
+            {
+                "file": name,
+                "label": wiki_page_label(name),
+                "category": event_categories.get(name[:-3], "") if not name.startswith("_") else None,
+            }
+            for name in files
+        ],
     }
 
 

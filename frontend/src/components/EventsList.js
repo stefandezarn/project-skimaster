@@ -1,6 +1,38 @@
-import React from 'react';
+
+function EventCard({ evt, onClick }) {
+  const paramCount = (evt.parameters || []).length;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-2xl border-2 border-indigo-400/30 bg-gradient-to-b from-indigo-950/50 to-slate-900/80 p-6 text-left transition hover:border-violet-400 hover:shadow-lg hover:shadow-violet-500/10"
+    >
+      <span className="text-lg font-bold text-white">{evt.name}</span>
+      {evt.description ? (
+        <p className="mt-2 text-sm text-slate-400 line-clamp-2">{evt.description}</p>
+      ) : (
+        <p className="mt-2 text-sm text-slate-500 italic">No description yet</p>
+      )}
+      <p className="mt-4 text-xs font-bold uppercase tracking-wider text-violet-400">
+        {paramCount} parameter{paramCount === 1 ? '' : 's'} →
+      </p>
+    </button>
+  );
+}
 
 export default function EventsList({ events, openEventInEditor, startNewEvent, setWorkspaceView }) {
+  // Group events by category; uncategorized last
+  const grouped = events.reduce((acc, evt) => {
+    const key = evt.category?.trim() || '';
+    (acc[key] = acc[key] || []).push(evt);
+    return acc;
+  }, {});
+
+  const categories = Object.keys(grouped)
+    .filter((k) => k !== '')
+    .sort();
+  if (grouped['']) categories.push('');
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <button
@@ -38,24 +70,18 @@ export default function EventsList({ events, openEventInEditor, startNewEvent, s
           </button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {events.map((evt) => (
-            <button
-              key={evt.name}
-              type="button"
-              onClick={() => openEventInEditor(evt)}
-              className="rounded-2xl border-2 border-indigo-400/30 bg-gradient-to-b from-indigo-950/50 to-slate-900/80 p-6 text-left transition hover:border-violet-400 hover:shadow-lg hover:shadow-violet-500/10"
-            >
-              <span className="text-lg font-bold text-white">{evt.name}</span>
-              {evt.description ? (
-                <p className="mt-2 text-sm text-slate-400 line-clamp-2">{evt.description}</p>
-              ) : (
-                <p className="mt-2 text-sm text-slate-500 italic">No description yet</p>
-              )}
-              <p className="mt-4 text-xs font-bold uppercase tracking-wider text-violet-400">
-                {(evt.parameters || []).length} parameter{(evt.parameters || []).length === 1 ? '' : 's'} →
-              </p>
-            </button>
+        <div className="space-y-10">
+          {categories.map((cat) => (
+            <div key={cat || '__uncategorized__'}>
+              <h2 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4 border-b border-white/5 pb-2">
+                {cat || 'Uncategorized'}
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {grouped[cat].map((evt) => (
+                  <EventCard key={evt.name} evt={evt} onClick={() => openEventInEditor(evt)} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}

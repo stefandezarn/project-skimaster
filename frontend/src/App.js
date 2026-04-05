@@ -28,6 +28,7 @@ function App() {
   const [parameters, setParameters] = useState([
     { key: '', type: 'string', required: true, description: '' },
   ]);
+  const [category, setCategory] = useState('');
   const [selectedSidebarEventName, setSelectedSidebarEventName] = useState(null);
   const [templateSelectReset, setTemplateSelectReset] = useState(0);
 
@@ -166,6 +167,7 @@ function App() {
     setWorkspaceId(id);
     setEventName('');
     setDescription('');
+    setCategory('');
     setParameters([{ key: '', type: 'string', required: true, description: '' }]);
     setSelectedSidebarEventName(null);
     setSelectedParamKey(null);
@@ -245,6 +247,7 @@ function App() {
     if (!item) return;
     setEventName(item.name || '');
     setDescription(item.description || '');
+    setCategory(item.category || '');
     const params = (item.parameters || []).map((p) => ({
       key: p.key || '',
       type: p.type || 'string',
@@ -266,6 +269,7 @@ function App() {
     setSelectedParamKey(null);
     setEventName('');
     setDescription('');
+    setCategory('');
     setParameters([{ key: '', type: 'string', required: true, description: '' }]);
     setWorkspaceView('event-editor');
   };
@@ -296,7 +300,7 @@ function App() {
       const res = await fetch(`${API_BASE}/workspaces/${workspaceId}/events/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: eventName, description, parameters }),
+        body: JSON.stringify({ name: eventName, description, category, parameters }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -332,6 +336,24 @@ function App() {
     const evt = (masterConfig.events || []).find((e) => e.name === name);
     if (!evt) { alert('Event not found. Try refreshing.'); return; }
     openEventInEditor(evt);
+  };
+
+  const createParameter = async ({ key, type, scope, send_to, description }) => {
+    if (!workspaceId) return false;
+    try {
+      const res = await fetch(`${API_BASE}/workspaces/${workspaceId}/parameters`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: key.trim(), type, scope, send_to, description }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || res.statusText);
+      fetchAllData();
+      return true;
+    } catch (err) {
+      alert(`Error creating parameter: ${err.message}`);
+      return false;
+    }
   };
 
   const saveParameterDefinition = async () => {
@@ -384,8 +406,8 @@ function App() {
 
   const views = {
     'events-list':     <EventsList events={events} openEventInEditor={openEventInEditor} startNewEvent={startNewEvent} setWorkspaceView={setWorkspaceView} />,
-    'event-editor':    <EventEditor selectedSidebarEventName={selectedSidebarEventName} eventName={eventName} setEventName={setEventName} description={description} setDescription={setDescription} parameters={parameters} templates={templates} libraryKeys={libraryKeys} templateSelectReset={templateSelectReset} applyTemplate={applyTemplate} addParameter={addParameter} updateParameter={updateParameter} removeParameter={removeParameter} saveEvent={saveEvent} setWorkspaceView={setWorkspaceView} />,
-    'parameters-list': <ParametersList paramCatalog={paramCatalog} openParameterDetail={openParameterDetail} setWorkspaceView={setWorkspaceView} />,
+    'event-editor':    <EventEditor selectedSidebarEventName={selectedSidebarEventName} eventName={eventName} setEventName={setEventName} description={description} setDescription={setDescription} category={category} setCategory={setCategory} existingCategories={Array.from(new Set(events.map((e) => e.category).filter(Boolean))).sort()} parameters={parameters} templates={templates} libraryKeys={libraryKeys} templateSelectReset={templateSelectReset} applyTemplate={applyTemplate} addParameter={addParameter} updateParameter={updateParameter} removeParameter={removeParameter} saveEvent={saveEvent} setWorkspaceView={setWorkspaceView} />,
+    'parameters-list': <ParametersList paramCatalog={paramCatalog} openParameterDetail={openParameterDetail} setWorkspaceView={setWorkspaceView} createParameter={createParameter} />,
     'parameter-detail':<ParameterDetail selectedParamKey={selectedParamKey} setSelectedParamKey={setSelectedParamKey} paramCatalog={paramCatalog} paramEditType={paramEditType} setParamEditType={setParamEditType} paramEditDescription={paramEditDescription} setParamEditDescription={setParamEditDescription} paramEditScope={paramEditScope} setParamEditScope={setParamEditScope} paramEditSendTo={paramEditSendTo} setParamEditSendTo={setParamEditSendTo} saveParameterDefinition={saveParameterDefinition} openEventByName={openEventByName} setWorkspaceView={setWorkspaceView} />,
     'wiki':            <WikiViewer wikiPages={wikiPages} selectedWikiFile={selectedWikiFile} setSelectedWikiFile={setSelectedWikiFile} wikiMarkdown={wikiMarkdown} wikiListLoading={wikiListLoading} wikiContentLoading={wikiContentLoading} fetchWikiPages={fetchWikiPages} fetchWikiContent={fetchWikiContent} setWorkspaceView={setWorkspaceView} />,
   };

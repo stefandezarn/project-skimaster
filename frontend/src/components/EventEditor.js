@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 
 export default function EventEditor({
   selectedSidebarEventName,
   eventName, setEventName,
   description, setDescription,
+  category, setCategory, existingCategories,
   parameters,
   templates, libraryKeys,
   templateSelectReset,
@@ -42,7 +43,7 @@ export default function EventEditor({
           {Object.keys(templates || {}).filter((c) => c !== 'item_parameters_reference').map((category) => (
             <optgroup key={category} label={category.replace(/_/g, ' ').toUpperCase()} className="text-slate-900">
               {(templates[category] || []).filter((t) => !t.name.startsWith('_')).map((t) => (
-                <option key={t.name} value={JSON.stringify(t)}>{t.name}</option>
+                <option key={t.name} value={JSON.stringify({ ...t, category })}>{t.name}</option>
               ))}
             </optgroup>
           ))}
@@ -89,6 +90,23 @@ export default function EventEditor({
               className="w-full rounded-2xl border border-white/10 bg-slate-900/50 px-4 py-3 text-sm text-slate-200 placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-violet-500 resize-y min-h-[100px]"
               placeholder="When this fires, context for implementers…"
             />
+          </div>
+
+          <div>
+            <label className="text-xs font-black uppercase text-slate-500 mb-2 block">Category</label>
+            <input
+              list="category-suggestions"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="e.g. ecommerce"
+              className="w-full rounded-2xl border border-white/10 bg-slate-900/50 px-4 py-3 text-sm text-slate-200 placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-violet-500"
+            />
+            <datalist id="category-suggestions">
+              {Array.from(new Set([
+                ...existingCategories,
+                ...Object.keys(templates || {}).filter((c) => c !== 'item_parameters_reference'),
+              ])).sort().map((c) => <option key={c} value={c} />)}
+            </datalist>
           </div>
 
           <div>

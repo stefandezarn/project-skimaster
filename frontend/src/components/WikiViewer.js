@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -85,7 +84,7 @@ export default function WikiViewer({
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8 min-h-[60vh]">
-        <aside className="lg:w-64 shrink-0 space-y-2">
+        <aside className="lg:w-64 shrink-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Pages</p>
           {wikiListLoading && wikiPages.length === 0 ? (
             <p className="text-sm text-slate-500">Loading…</p>
@@ -93,13 +92,24 @@ export default function WikiViewer({
             <p className="text-sm text-slate-500 italic">
               No wiki yet. Save an event or parameter to generate docs.
             </p>
-          ) : (
-            wikiPages.map((p) => (
+          ) : (() => {
+            const pinned = wikiPages.filter((p) => p.category === null);
+            const grouped = wikiPages
+              .filter((p) => p.category !== null)
+              .reduce((acc, p) => {
+                const key = p.category || '';
+                (acc[key] = acc[key] || []).push(p);
+                return acc;
+              }, {});
+            const cats = Object.keys(grouped).filter((k) => k !== '').sort();
+            if (grouped['']) cats.push('');
+
+            const PageBtn = ({ p }) => (
               <button
                 key={p.file}
                 type="button"
                 onClick={() => setSelectedWikiFile(p.file)}
-                className={`w-full rounded-xl px-4 py-3 text-left text-sm font-semibold transition ${
+                className={`w-full rounded-xl px-4 py-2.5 text-left text-sm font-semibold transition ${
                   selectedWikiFile === p.file
                     ? 'bg-emerald-500/25 text-emerald-100 ring-1 ring-emerald-400/40'
                     : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-transparent'
@@ -107,8 +117,28 @@ export default function WikiViewer({
               >
                 {p.label}
               </button>
-            ))
-          )}
+            );
+
+            return (
+              <div className="space-y-4">
+                {pinned.length > 0 && (
+                  <div className="space-y-1">
+                    {pinned.map((p) => <PageBtn key={p.file} p={p} />)}
+                  </div>
+                )}
+                {cats.map((cat) => (
+                  <div key={cat || '__uncategorized__'}>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-600 px-1 mb-1">
+                      {cat || 'Uncategorized'}
+                    </p>
+                    <div className="space-y-1">
+                      {grouped[cat].map((p) => <PageBtn key={p.file} p={p} />)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </aside>
         <article className="flex-grow min-w-0 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-10 shadow-xl">
           {wikiContentLoading ? (
