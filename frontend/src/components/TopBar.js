@@ -1,4 +1,3 @@
-import React from 'react';
 
 export default function TopBar({ workspaceTitle, workspaceView, setWorkspaceView, workspacesList, workspaceId, switchWorkspace, openLanding, setSelectedParamKey }) {
   return (
@@ -7,7 +6,7 @@ export default function TopBar({ workspaceTitle, workspaceView, setWorkspaceView
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 shrink-0 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-lg shadow-violet-500/30" />
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400">Analytics Architect</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400">Schemantics</p>
             <p className="text-sm font-semibold text-white truncate">{workspaceTitle}</p>
           </div>
         </div>

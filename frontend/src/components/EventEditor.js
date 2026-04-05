@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 
+const toLabel = (s) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
 export default function EventEditor({
   selectedSidebarEventName,
   eventName, setEventName,
@@ -8,7 +10,8 @@ export default function EventEditor({
   parameters,
   templates, libraryKeys,
   templateSelectReset,
-  applyTemplate, addParameter, updateParameter, removeParameter, saveEvent,
+  applyTemplate, addParameter, addItemParams, updateParameter, removeParameter,
+  saveEvent, deleteEvent, duplicateEvent,
   setWorkspaceView,
 }) {
   const paramSuggestions = useMemo(() => {
@@ -41,7 +44,7 @@ export default function EventEditor({
         >
           <option value="" className="text-slate-900">— Choose template —</option>
           {Object.keys(templates || {}).filter((c) => c !== 'item_parameters_reference').map((category) => (
-            <optgroup key={category} label={category.replace(/_/g, ' ').toUpperCase()} className="text-slate-900">
+            <optgroup key={category} label={toLabel(category)} className="text-slate-900">
               {(templates[category] || []).filter((t) => !t.name.startsWith('_')).map((t) => (
                 <option key={t.name} value={JSON.stringify({ ...t, category })}>{t.name}</option>
               ))}
@@ -104,7 +107,7 @@ export default function EventEditor({
             <datalist id="category-suggestions">
               {Array.from(new Set([
                 ...existingCategories,
-                ...Object.keys(templates || {}).filter((c) => c !== 'item_parameters_reference'),
+                ...Object.keys(templates || {}).filter((c) => c !== 'item_parameters_reference').map(toLabel),
               ])).sort().map((c) => <option key={c} value={c} />)}
             </datalist>
           </div>
@@ -112,13 +115,22 @@ export default function EventEditor({
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">Parameters on this event</h3>
-              <button
-                type="button"
-                onClick={addParameter}
-                className="rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2.5 text-xs font-black uppercase tracking-wide text-white shadow-lg shadow-cyan-500/20 hover:opacity-95 transition"
-              >
-                + Add parameter
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={addItemParams}
+                  className="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition"
+                >
+                  + Item params
+                </button>
+                <button
+                  type="button"
+                  onClick={addParameter}
+                  className="rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2.5 text-xs font-black uppercase tracking-wide text-white shadow-lg shadow-cyan-500/20 hover:opacity-95 transition"
+                >
+                  + Add parameter
+                </button>
+              </div>
             </div>
             <div className="space-y-4">
               {parameters.map((param, index) => (
@@ -138,15 +150,31 @@ export default function EventEditor({
                         ))}
                       </datalist>
                       <div className="flex flex-wrap gap-4">
-                        <select
-                          value={param.type}
-                          className="rounded-xl border border-white/10 bg-slate-950/50 px-3 py-2 text-xs font-bold text-slate-200 outline-none"
-                          onChange={(e) => updateParameter(index, 'type', e.target.value)}
-                        >
-                          <option value="string">String</option>
-                          <option value="number">Number</option>
-                          <option value="boolean">Boolean</option>
-                        </select>
+                        <label className="flex flex-col gap-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Type</span>
+                          <select
+                            value={param.type}
+                            className="rounded-xl border border-white/10 bg-slate-950/50 px-3 py-2 text-xs font-bold text-slate-200 outline-none"
+                            onChange={(e) => updateParameter(index, 'type', e.target.value)}
+                          >
+                            <option value="string">String</option>
+                            <option value="number">Number</option>
+                            <option value="boolean">Boolean</option>
+                          </select>
+                        </label>
+                        <label className="flex flex-col gap-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Scope</span>
+                          <select
+                            value={param.scope || 'event'}
+                            className="rounded-xl border border-white/10 bg-slate-950/50 px-3 py-2 text-xs font-bold text-slate-200 outline-none"
+                            onChange={(e) => updateParameter(index, 'scope', e.target.value)}
+                          >
+                            <option value="event">Event</option>
+                            <option value="ecommerce">Ecommerce</option>
+                            <option value="item">Item</option>
+                            <option value="user">User</option>
+                          </select>
+                        </label>
                         <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300">
                           <input
                             type="checkbox"
@@ -184,6 +212,25 @@ export default function EventEditor({
           >
             Save event & rebuild wiki
           </button>
+
+          {selectedSidebarEventName && (
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={duplicateEvent}
+                className="flex-1 rounded-2xl border border-slate-500/40 bg-slate-700/30 py-3 text-xs font-bold uppercase tracking-wide text-slate-300 hover:bg-slate-700/50 transition"
+              >
+                Duplicate event
+              </button>
+              <button
+                type="button"
+                onClick={deleteEvent}
+                className="flex-1 rounded-2xl border border-red-400/30 bg-red-500/10 py-3 text-xs font-bold uppercase tracking-wide text-red-300 hover:bg-red-500/20 transition"
+              >
+                Delete event
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

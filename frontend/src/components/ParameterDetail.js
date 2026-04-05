@@ -1,3 +1,4 @@
+import { useState } from 'react';
 
 export default function ParameterDetail({
   selectedParamKey, setSelectedParamKey,
@@ -6,9 +7,12 @@ export default function ParameterDetail({
   paramEditDescription, setParamEditDescription,
   paramEditScope, setParamEditScope,
   paramEditSendTo, setParamEditSendTo,
-  saveParameterDefinition, openEventByName,
+  saveParameterDefinition, deleteParameter, renameParameter,
+  openEventByName,
   setWorkspaceView,
 }) {
+  const [renameValue, setRenameValue] = useState('');
+  const [showRename, setShowRename] = useState(false);
   const row = paramCatalog.find((r) => r.key === selectedParamKey);
   const used = row?.used_by || [];
 
@@ -122,6 +126,46 @@ export default function ParameterDetail({
         >
           Save master definition
         </button>
+
+        <div className="mt-4 flex gap-3">
+          <button
+            type="button"
+            onClick={() => { setShowRename((v) => !v); setRenameValue(selectedParamKey); }}
+            className="flex-1 rounded-2xl border border-slate-500/40 bg-slate-700/30 py-3 text-xs font-bold uppercase tracking-wide text-slate-300 hover:bg-slate-700/50 transition"
+          >
+            Rename key
+          </button>
+          <button
+            type="button"
+            onClick={deleteParameter}
+            className="flex-1 rounded-2xl border border-red-400/30 bg-red-500/10 py-3 text-xs font-bold uppercase tracking-wide text-red-300 hover:bg-red-500/20 transition"
+          >
+            Delete parameter
+          </button>
+        </div>
+
+        {showRename && (
+          <div className="mt-4 flex gap-2">
+            <input
+              autoFocus
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { renameParameter(renameValue); setShowRename(false); }
+                if (e.key === 'Escape') setShowRename(false);
+              }}
+              className="flex-1 rounded-xl border border-white/10 bg-slate-900/60 px-4 py-2 font-mono text-sm font-semibold text-white outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <button
+              type="button"
+              onClick={() => { renameParameter(renameValue); setShowRename(false); }}
+              disabled={!renameValue.trim() || renameValue === selectedParamKey}
+              className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
+            >
+              Apply
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

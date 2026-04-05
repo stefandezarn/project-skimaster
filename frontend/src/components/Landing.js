@@ -1,4 +1,3 @@
-import React from 'react';
 
 export default function Landing({ workspacesList, newWorkspaceName, setNewWorkspaceName, createWorkspace, switchWorkspace }) {
   return (
@@ -6,7 +5,7 @@ export default function Landing({ workspacesList, newWorkspaceName, setNewWorksp
       <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-white/[0.07] backdrop-blur-xl shadow-2xl p-10 space-y-8">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-300 mb-2">
-            Analytics Architect
+            Schemantics
           </p>
           <h1 className="text-3xl font-black tracking-tight text-white">Your workspace</h1>
           <p className="text-sm text-slate-300 mt-3 leading-relaxed">

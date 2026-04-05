@@ -51,7 +51,6 @@ const mdComponents = {
 export default function WikiViewer({
   wikiPages, selectedWikiFile, setSelectedWikiFile,
   wikiMarkdown, wikiListLoading, wikiContentLoading,
-  fetchWikiPages, fetchWikiContent,
   setWorkspaceView,
 }) {
   return (
@@ -70,17 +69,6 @@ export default function WikiViewer({
             Markdown generated when you save events or parameters. Use the list to switch pages.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={async () => {
-            const file = await fetchWikiPages();
-            if (file) await fetchWikiContent(file);
-          }}
-          disabled={wikiListLoading}
-          className="shrink-0 rounded-2xl border border-emerald-400/40 bg-emerald-500/10 px-5 py-2.5 text-xs font-bold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-50"
-        >
-          {wikiListLoading ? 'Refreshing…' : 'Refresh wiki'}
-        </button>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8 min-h-[60vh]">

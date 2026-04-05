@@ -26,7 +26,7 @@ function App() {
   const [eventName, setEventName] = useState('');
   const [description, setDescription] = useState('');
   const [parameters, setParameters] = useState([
-    { key: '', type: 'string', required: true, description: '' },
+    { key: '', type: 'string', required: true, description: '', scope: 'event', send_to: 'event_param' },
   ]);
   const [category, setCategory] = useState('');
   const [selectedSidebarEventName, setSelectedSidebarEventName] = useState(null);
@@ -168,7 +168,7 @@ function App() {
     setEventName('');
     setDescription('');
     setCategory('');
-    setParameters([{ key: '', type: 'string', required: true, description: '' }]);
+    setParameters([{ key: '', type: 'string', required: true, description: '', scope: 'event', send_to: 'event_param' }]);
     setSelectedSidebarEventName(null);
     setSelectedParamKey(null);
     setWorkspaceView('hub');
@@ -253,6 +253,8 @@ function App() {
       type: p.type || 'string',
       required: p.required !== false,
       description: p.description || '',
+      scope: p.scope || 'event',
+      send_to: p.send_to || 'event_param',
     }));
     setParameters(params.length ? params : [{ key: '', type: 'string', required: true, description: '' }]);
   };
@@ -270,7 +272,7 @@ function App() {
     setEventName('');
     setDescription('');
     setCategory('');
-    setParameters([{ key: '', type: 'string', required: true, description: '' }]);
+    setParameters([{ key: '', type: 'string', required: true, description: '', scope: 'event', send_to: 'event_param' }]);
     setWorkspaceView('event-editor');
   };
 
@@ -282,7 +284,7 @@ function App() {
   };
 
   const addParameter = () =>
-    setParameters((prev) => [...prev, { key: '', type: 'string', required: true, description: '' }]);
+    setParameters((prev) => [...prev, { key: '', type: 'string', required: true, description: '', scope: 'event', send_to: 'event_param' }]);
 
   const updateParameter = (index, field, value) =>
     setParameters((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
@@ -290,8 +292,62 @@ function App() {
   const removeParameter = (index) =>
     setParameters((prev) => {
       const next = prev.filter((_, i) => i !== index);
-      return next.length ? next : [{ key: '', type: 'string', required: true, description: '' }];
+      return next.length ? next : [{ key: '', type: 'string', required: true, description: '', scope: 'event', send_to: 'event_param' }];
     });
+
+  const deleteEvent = async () => {
+    if (!workspaceId || !selectedSidebarEventName) return;
+    if (!window.confirm(`Delete event "${selectedSidebarEventName}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(
+        `${API_BASE}/workspaces/${workspaceId}/events/${encodeURIComponent(selectedSidebarEventName)}`,
+        { method: 'DELETE' }
+      );
+      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      fetchAllData();
+      setWorkspaceView('events-list');
+    } catch (err) {
+      alert(`Delete failed: ${err.message}`);
+    }
+  };
+
+  const duplicateEvent = async () => {
+    if (!workspaceId || !selectedSidebarEventName) return;
+    try {
+      const res = await fetch(
+        `${API_BASE}/workspaces/${workspaceId}/events/${encodeURIComponent(selectedSidebarEventName)}/duplicate`,
+        { method: 'POST' }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || res.statusText);
+      await fetchAllData();
+      const newEvt = masterConfig.events.find((e) => e.name === data.new_name)
+        || { name: data.new_name, description: '', category: '', parameters: [] };
+      setSelectedSidebarEventName(data.new_name);
+      loadToForm({ ...newEvt, name: data.new_name });
+    } catch (err) {
+      alert(`Duplicate failed: ${err.message}`);
+    }
+  };
+
+  const addItemParams = () => {
+    const itemParams = templates?.item_parameters_reference?.[0]?.parameters || [];
+    if (!itemParams.length) return;
+    setParameters((prev) => {
+      const existingKeys = new Set(prev.map((p) => p.key));
+      const toAdd = itemParams
+        .filter((p) => !existingKeys.has(p.key))
+        .map((p) => ({
+          key: p.key,
+          type: p.type || 'string',
+          required: p.required !== false,
+          description: p.description || '',
+          scope: p.scope || 'item',
+          send_to: 'event_param',
+        }));
+      return [...prev.filter((p) => p.key !== ''), ...toAdd];
+    });
+  };
 
   const saveEvent = async () => {
     if (!eventName) return alert('Event Name is required.');
@@ -356,7 +412,44 @@ function App() {
     }
   };
 
-  const saveParameterDefinition = async () => {
+  const deleteParameter = async () => {
+    if (!workspaceId || !selectedParamKey) return;
+    if (!window.confirm(`Delete parameter "${selectedParamKey}"? It will be removed from all events. This cannot be undone.`)) return;
+    try {
+      const res = await fetch(
+        `${API_BASE}/workspaces/${workspaceId}/parameters/${encodeURIComponent(selectedParamKey)}`,
+        { method: 'DELETE' }
+      );
+      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      fetchAllData();
+      setSelectedParamKey(null);
+      setWorkspaceView('parameters-list');
+    } catch (err) {
+      alert(`Delete failed: ${err.message}`);
+    }
+  };
+
+  const renameParameter = async (newKey) => {
+    if (!workspaceId || !selectedParamKey || !newKey.trim()) return;
+    try {
+      const res = await fetch(
+        `${API_BASE}/workspaces/${workspaceId}/parameters/${encodeURIComponent(selectedParamKey)}/rename`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ new_key: newKey.trim() }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || res.statusText);
+      setSelectedParamKey(data.new_key);
+      fetchAllData();
+    } catch (err) {
+      alert(`Rename failed: ${err.message}`);
+    }
+  };
+
+const saveParameterDefinition = async () => {
     if (!workspaceId) return alert('No workspace selected.');
     if (!selectedParamKey) return;
     try {
@@ -406,10 +499,10 @@ function App() {
 
   const views = {
     'events-list':     <EventsList events={events} openEventInEditor={openEventInEditor} startNewEvent={startNewEvent} setWorkspaceView={setWorkspaceView} />,
-    'event-editor':    <EventEditor selectedSidebarEventName={selectedSidebarEventName} eventName={eventName} setEventName={setEventName} description={description} setDescription={setDescription} category={category} setCategory={setCategory} existingCategories={Array.from(new Set(events.map((e) => e.category).filter(Boolean))).sort()} parameters={parameters} templates={templates} libraryKeys={libraryKeys} templateSelectReset={templateSelectReset} applyTemplate={applyTemplate} addParameter={addParameter} updateParameter={updateParameter} removeParameter={removeParameter} saveEvent={saveEvent} setWorkspaceView={setWorkspaceView} />,
+    'event-editor':    <EventEditor selectedSidebarEventName={selectedSidebarEventName} eventName={eventName} setEventName={setEventName} description={description} setDescription={setDescription} category={category} setCategory={setCategory} existingCategories={Array.from(new Set(events.map((e) => e.category).filter(Boolean))).sort()} parameters={parameters} templates={templates} libraryKeys={libraryKeys} templateSelectReset={templateSelectReset} applyTemplate={applyTemplate} addParameter={addParameter} addItemParams={addItemParams} updateParameter={updateParameter} removeParameter={removeParameter} saveEvent={saveEvent} deleteEvent={deleteEvent} duplicateEvent={duplicateEvent} setWorkspaceView={setWorkspaceView} />,
     'parameters-list': <ParametersList paramCatalog={paramCatalog} openParameterDetail={openParameterDetail} setWorkspaceView={setWorkspaceView} createParameter={createParameter} />,
-    'parameter-detail':<ParameterDetail selectedParamKey={selectedParamKey} setSelectedParamKey={setSelectedParamKey} paramCatalog={paramCatalog} paramEditType={paramEditType} setParamEditType={setParamEditType} paramEditDescription={paramEditDescription} setParamEditDescription={setParamEditDescription} paramEditScope={paramEditScope} setParamEditScope={setParamEditScope} paramEditSendTo={paramEditSendTo} setParamEditSendTo={setParamEditSendTo} saveParameterDefinition={saveParameterDefinition} openEventByName={openEventByName} setWorkspaceView={setWorkspaceView} />,
-    'wiki':            <WikiViewer wikiPages={wikiPages} selectedWikiFile={selectedWikiFile} setSelectedWikiFile={setSelectedWikiFile} wikiMarkdown={wikiMarkdown} wikiListLoading={wikiListLoading} wikiContentLoading={wikiContentLoading} fetchWikiPages={fetchWikiPages} fetchWikiContent={fetchWikiContent} setWorkspaceView={setWorkspaceView} />,
+    'parameter-detail':<ParameterDetail selectedParamKey={selectedParamKey} setSelectedParamKey={setSelectedParamKey} paramCatalog={paramCatalog} paramEditType={paramEditType} setParamEditType={setParamEditType} paramEditDescription={paramEditDescription} setParamEditDescription={setParamEditDescription} paramEditScope={paramEditScope} setParamEditScope={setParamEditScope} paramEditSendTo={paramEditSendTo} setParamEditSendTo={setParamEditSendTo} saveParameterDefinition={saveParameterDefinition} deleteParameter={deleteParameter} renameParameter={renameParameter} openEventByName={openEventByName} setWorkspaceView={setWorkspaceView} />,
+    'wiki':            <WikiViewer wikiPages={wikiPages} selectedWikiFile={selectedWikiFile} setSelectedWikiFile={setSelectedWikiFile} wikiMarkdown={wikiMarkdown} wikiListLoading={wikiListLoading} wikiContentLoading={wikiContentLoading} setWorkspaceView={setWorkspaceView} />,
   };
 
   return (

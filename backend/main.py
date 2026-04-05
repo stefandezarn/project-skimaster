@@ -58,9 +58,11 @@ def _datalayer_snippet(event: dict, global_parameters: dict) -> str:
     event_params, ecommerce_params, item_params, config_params, user_props = [], [], [], [], []
 
     for p in params:
+        if p["key"] == "items":
+            continue  # structural container rendered as items:[{...}] block, not a flat param
         g = global_parameters.get(p["key"], {})
-        scope = g.get("scope", "event")
-        send_to = g.get("send_to", "event_param")
+        scope = p.get("scope") or g.get("scope", "event")
+        send_to = p.get("send_to") or g.get("send_to", "event_param")
         ptype = p.get("type") or g.get("type", "string")
         req_comment = "  // required" if p.get("required") else "  // optional"
 
@@ -136,8 +138,8 @@ def compile_wiki(workspace_id: str, config: dict) -> None:
             global_def = config["global_parameters"].get(p["key"], {})
             desc = p.get("description") or global_def.get("description", "TBD")
             req = "✅" if p["required"] else "❌"
-            scope = global_def.get("scope", "event")
-            send_to = global_def.get("send_to", "event_param")
+            scope = p.get("scope") or global_def.get("scope", "event")
+            send_to = p.get("send_to") or global_def.get("send_to", "event_param")
             scope_label = {"event": "event", "ecommerce": "ecommerce obj", "item": "ecommerce.items[ ]", "user": "user"}.get(scope, scope)
             md += f"| `{p['key']}` | {p['type']} | {req} | {scope_label} | {send_to} | {desc} |\n"
 
@@ -160,21 +162,11 @@ def compile_wiki(workspace_id: str, config: dict) -> None:
 
 
 def ensure_wiki_on_disk(workspace_id: str) -> str:
-    """Ensure wiki_output/{id} exists with .md files; compile if missing or empty."""
+    """Always recompile wiki so it reflects the current workspace state."""
     wid = require_workspace_id(workspace_id)
     doc = load_workspace_doc(workspace_id)
-    root = os.path.join(WIKI_DIR, wid)
-    need_compile = True
-    if os.path.isdir(root):
-        md_files = [
-            n
-            for n in os.listdir(root)
-            if n.endswith(".md") and os.path.isfile(os.path.join(root, n))
-        ]
-        need_compile = len(md_files) == 0
-    if need_compile:
-        compile_wiki(wid, doc)
-    return root
+    compile_wiki(wid, doc)
+    return os.path.join(WIKI_DIR, wid)
 
 
 def wiki_page_label(filename: str) -> str:
@@ -190,6 +182,8 @@ class Parameter(BaseModel):
     type: str = "string"
     required: bool = True
     description: Optional[str] = ""
+    scope: str = "event"
+    send_to: str = "event_param"
 
 
 class EventSchema(BaseModel):
@@ -354,12 +348,104 @@ async def save_workspace_event(workspace_id: str, event: EventSchema):
             doc["global_parameters"][p.key] = {
                 "description": p.description or "Auto-registered",
                 "type": p.type,
+                "scope": p.scope,
+                "send_to": p.send_to,
             }
 
     touch_meta(doc)
     storage.save_workspace(wid, doc)
     compile_wiki(wid, doc)
     return {"message": f"Successfully updated {event.name} and rebuilt Wiki."}
+
+
+@app.delete("/workspaces/{workspace_id}/events/{event_name}")
+async def delete_workspace_event(workspace_id: str, event_name: str):
+    wid = require_workspace_id(workspace_id)
+    doc = load_workspace_doc(workspace_id)
+    before = len(doc["events"])
+    doc["events"] = [e for e in doc["events"] if e["name"] != event_name]
+    if len(doc["events"]) == before:
+        raise HTTPException(status_code=404, detail=f"Event '{event_name}' not found")
+    touch_meta(doc)
+    storage.save_workspace(wid, doc)
+    compile_wiki(wid, doc)
+    safe_name = event_name.replace("/", "_")
+    wiki_file = os.path.join(WIKI_DIR, wid, f"{safe_name}.md")
+    if os.path.isfile(wiki_file):
+        os.remove(wiki_file)
+    return {"message": f"Event '{event_name}' deleted."}
+
+
+@app.post("/workspaces/{workspace_id}/events/{event_name}/duplicate")
+async def duplicate_workspace_event(workspace_id: str, event_name: str):
+    import copy
+    wid = require_workspace_id(workspace_id)
+    doc = load_workspace_doc(workspace_id)
+    source = next((e for e in doc["events"] if e["name"] == event_name), None)
+    if not source:
+        raise HTTPException(status_code=404, detail=f"Event '{event_name}' not found")
+    new_event = copy.deepcopy(source)
+    existing = {e["name"] for e in doc["events"]}
+    base = f"{event_name}_copy"
+    candidate = base
+    i = 2
+    while candidate in existing:
+        candidate = f"{base}_{i}"
+        i += 1
+    new_event["name"] = candidate
+    doc["events"].append(new_event)
+    touch_meta(doc)
+    storage.save_workspace(wid, doc)
+    compile_wiki(wid, doc)
+    return {"message": f"Duplicated as '{candidate}'.", "new_name": candidate}
+
+
+class ParameterRename(BaseModel):
+    new_key: str
+
+
+@app.post("/workspaces/{workspace_id}/parameters/{key}/rename")
+async def rename_parameter_key(workspace_id: str, key: str, body: ParameterRename):
+    new_key = (body.new_key or "").strip()
+    if not new_key:
+        raise HTTPException(status_code=400, detail="new_key is required")
+    wid = require_workspace_id(workspace_id)
+    doc = load_workspace_doc(workspace_id)
+    gp = doc.setdefault("global_parameters", {})
+    if key not in gp:
+        raise HTTPException(status_code=404, detail=f"Parameter '{key}' not found")
+    if new_key != key and new_key in gp:
+        raise HTTPException(status_code=400, detail=f"Parameter '{new_key}' already exists")
+    gp[new_key] = gp.pop(key)
+    for event in doc["events"]:
+        for p in event.get("parameters", []):
+            if p["key"] == key:
+                p["key"] = new_key
+    touch_meta(doc)
+    storage.save_workspace(wid, doc)
+    compile_wiki(wid, doc)
+    return {"message": f"Renamed '{key}' → '{new_key}' across all events.", "new_key": new_key}
+
+
+@app.delete("/workspaces/{workspace_id}/parameters/{key}")
+async def delete_parameter(workspace_id: str, key: str):
+    wid = require_workspace_id(workspace_id)
+    doc = load_workspace_doc(workspace_id)
+    doc.setdefault("global_parameters", {}).pop(key, None)
+    for event in doc["events"]:
+        event["parameters"] = [p for p in event.get("parameters", []) if p["key"] != key]
+    touch_meta(doc)
+    storage.save_workspace(wid, doc)
+    compile_wiki(wid, doc)
+    return {"message": f"Parameter '{key}' deleted from workspace and all events."}
+
+
+@app.post("/workspaces/{workspace_id}/wiki/rebuild")
+async def rebuild_wiki(workspace_id: str):
+    wid = require_workspace_id(workspace_id)
+    doc = load_workspace_doc(workspace_id)
+    compile_wiki(wid, doc)
+    return {"message": "Wiki rebuilt."}
 
 
 @app.get("/workspaces/{workspace_id}/wiki/pages")
