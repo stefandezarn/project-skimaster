@@ -140,8 +140,9 @@ def compile_wiki(workspace_id: str, config: dict) -> None:
             req = "✅" if p["required"] else "❌"
             scope = p.get("scope") or global_def.get("scope", "event")
             send_to = p.get("send_to") or global_def.get("send_to", "event_param")
-            scope_label = {"event": "event", "ecommerce": "ecommerce obj", "item": "ecommerce.items[ ]", "user": "user"}.get(scope, scope)
-            md += f"| `{p['key']}` | {p['type']} | {req} | {scope_label} | {send_to} | {desc} |\n"
+            scope_label = {"item": "Item", "user": "User"}.get(scope, "Event")
+            send_to_label = {"event_param": "Event param", "config_param": "Config param", "user_property": "User property"}.get(send_to, send_to)
+            md += f"| `{p['key']}` | {p['type']} | {req} | {scope_label} | {send_to_label} | {desc} |\n"
 
         md += "\n" + _datalayer_snippet(event, config["global_parameters"]) + "\n"
 
@@ -154,8 +155,9 @@ def compile_wiki(workspace_id: str, config: dict) -> None:
     for key, data in config["global_parameters"].items():
         scope = data.get("scope", "event")
         send_to = data.get("send_to", "event_param")
-        scope_label = {"event": "event", "ecommerce": "ecommerce obj", "item": "ecommerce.items[ ]", "user": "user"}.get(scope, scope)
-        dict_md += f"| `{key}` | {data.get('type', 'string')} | {scope_label} | {send_to} | {data.get('description', '')} |\n"
+        scope_label = {"item": "Item", "user": "User"}.get(scope, "Event")
+        send_to_label = {"event_param": "Event param", "config_param": "Config param", "user_property": "User property"}.get(send_to, send_to)
+        dict_md += f"| `{key}` | {data.get('type', 'string')} | {scope_label} | {send_to_label} | {data.get('description', '')} |\n"
 
     with open(os.path.join(root, "_master_dictionary.md"), "w", encoding="utf-8") as f:
         f.write(dict_md)
