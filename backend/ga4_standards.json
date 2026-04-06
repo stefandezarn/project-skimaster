@@ -154,8 +154,6 @@
       "name": "view_item_list",
       "description": "Triggered when a user views a list of products or offerings.",
       "parameters": [
-        { "key": "item_list_id", "type": "string", "required": false, "scope": "ecommerce", "description": "Identifier for the list (e.g. related_products)." },
-        { "key": "item_list_name", "type": "string", "required": false, "scope": "ecommerce", "description": "Display name of the list." },
         { "key": "item_id", "type": "string", "required": true, "scope": "item", "description": "Unique identifier for the item (e.g. SKU)." },
         { "key": "item_name", "type": "string", "required": true, "scope": "item", "description": "Display name of the item." },
         { "key": "affiliation", "type": "string", "required": false, "scope": "item", "description": "Store or affiliate associated with the item." },
@@ -180,8 +178,6 @@
       "name": "select_item",
       "description": "Triggered when a user selects an item from a list.",
       "parameters": [
-        { "key": "item_list_id", "type": "string", "required": false, "scope": "ecommerce", "description": "Identifier for the list the item was selected from." },
-        { "key": "item_list_name", "type": "string", "required": false, "scope": "ecommerce", "description": "Display name of the list." },
         { "key": "item_id", "type": "string", "required": true, "scope": "item", "description": "Unique identifier for the item (e.g. SKU)." },
         { "key": "item_name", "type": "string", "required": true, "scope": "item", "description": "Display name of the item." },
         { "key": "affiliation", "type": "string", "required": false, "scope": "item", "description": "Store or affiliate associated with the item." },
